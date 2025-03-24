@@ -1,0 +1,10 @@
+numpy
+pandas
+fastapi[standard]
+pydantic
+sqlmodel
+bcrypt
+pyjwt
+pytest
+httpx
+pwinput

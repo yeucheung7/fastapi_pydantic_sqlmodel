@@ -1,0 +1,12 @@
+{
+    "db": {
+        "sqlite_file": "db.sqlite",
+        "echo": false
+    },
+    "jwt": {
+        "access_lifetime_s": 1800,
+        "refresh_lifetime_s": 2592000,
+        "leeway_s": 120,
+        "sign_key": "secrete"
+    }
+}
