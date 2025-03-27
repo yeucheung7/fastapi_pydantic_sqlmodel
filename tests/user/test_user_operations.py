@@ -12,13 +12,17 @@ import time
 import random
 import string
 
-def random_string(length: int = 20):
+def random_email() -> str:
+    return random_string(6, no_pun = False) + "@" + random_string(5, no_pun = False) + ".com"
+
+def random_string(length: int = 20, no_pun: bool = False) -> str:
     return ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k = length))
 
 ## Test case setup ##
 test_user = UserModel(
     id = 1,
     user_name = random_string(10),
+    email = random_email(),
     password_hash = random_string(10),
     min_token_verison = 0,
     is_admin = False,
@@ -33,7 +37,6 @@ test_wait_time = token_life_time_s * 1.1
 class Test_User_Selection:
     def test_good_select_by_id(self):
         target_uid: int = 1
-
         with Session(db.engine) as session:
             selected_user: UserModel = UserUtil.select_user_by_id(uid = target_uid, session = session)
             assert (selected_user is None) == False
@@ -52,7 +55,6 @@ class Test_User_Selection:
 
     def test_missing_select_by_id(self):
         target_uid: int = -1
-
         with Session(db.engine) as session:
             selected_user: UserModel = UserUtil.select_user_by_id(uid = target_uid, session = session)
             assert (selected_user is None) == True
@@ -60,7 +62,6 @@ class Test_User_Selection:
     def test_bad_select_by_id(self):
         target_uid_str = "1"
         target_uid_float = 1.0
-
         with Session(db.engine) as session:
             with pytest.raises(TypeError):
                 selected_user: UserModel = UserUtil.select_user_by_id(uid = target_uid_str, session = session)
@@ -71,10 +72,11 @@ class Test_User_Creation_and_Delete:
     def test_user_creation_and_delete(self):
         with Session(db.engine) as session:
             new_user_name: str = random_string()
+            new_email: str = random_email()
             new_clear_password: str = random_string()
 
             ## Creation
-            new_user_model, err = UserUtil.create_new_user(new_user_name, new_clear_password, session = session, super_user = False)
+            new_user_model, err = UserUtil.create_new_user(new_user_name, new_email, new_clear_password, session = session, super_user = False)
             assert (new_user_model is None) == False
             assert (err is None) == True
             new_uid: int = new_user_model.id
@@ -95,11 +97,12 @@ class Test_User_Creation_and_Delete:
         with Session(db.engine) as session:
             ## Basic information
             new_user_name: str = random_string(15)
+            new_email: str = random_email()
             clear_pw_1: str = random_string(10)
             clear_pw_2: str = random_string(5) + clear_pw_1
 
             ## Creating the first user
-            new_user_1, err = UserUtil.create_new_user(new_user_name, clear_pw_1, session = session, super_user = False)
+            new_user_1, err = UserUtil.create_new_user(new_user_name, new_email, clear_pw_1, session = session, super_user = False)
 
             ## Confirm first user created okay
             assert (new_user_1 is None) == False
@@ -107,7 +110,7 @@ class Test_User_Creation_and_Delete:
             user_1_uid: int = new_user_1.id
 
             ## Create the second user that has the exact same name of first user
-            new_user_2, err = UserUtil.create_new_user(new_user_name, clear_pw_2, session = session, super_user = False)
+            new_user_2, err = UserUtil.create_new_user(new_user_name, new_email, clear_pw_2, session = session, super_user = False)
 
             ## Confirm second user was not created due to repeated name
             assert (new_user_2 is None) == True
@@ -134,12 +137,13 @@ class Test_User_Update:
         ## Basic user info
         user_name_1: str = random_string(10)
         user_name_2: str = random_string(5) + user_name_1
+        new_email: str  = random_email()
         clear_pw_1: str = random_string(10)
 
         ## DB session
         with Session(db.engine) as session:
             ## Create the test user account
-            new_user, err = UserUtil.create_new_user(user_name = user_name_1, clear_text_pw = clear_pw_1, session = session)
+            new_user, err = UserUtil.create_new_user(user_name = user_name_1, email = new_email, clear_text_pw = clear_pw_1, session = session)
 
             ## Make sure the new user account is okay
             assert (new_user is None) == False
@@ -158,7 +162,6 @@ class Test_User_Update:
             assert new_user.user_name != user_name_1
             assert new_user.user_name == user_name_2
 
-            
             ## Delete the created test user
             user_id: int = new_user.id
             status_code: int = UserUtil.delete_user_by_id(uid = user_id, session = session)
@@ -171,6 +174,7 @@ class Test_User_Update:
     def test_user_update_name_to_existing_user(self):
         ## Basic user info
         user_name_1: str = random_string(10)
+        new_email: str = random_email()
         clear_pw_1: str = random_string(10)
 
         ## DB session
@@ -182,7 +186,7 @@ class Test_User_Update:
             user_name_2: str = exising_user_name
 
             ## Create the test user account
-            new_user, err = UserUtil.create_new_user(user_name = user_name_1, clear_text_pw = clear_pw_1, session = session)
+            new_user, err = UserUtil.create_new_user(user_name = user_name_1, email = new_email, clear_text_pw = clear_pw_1, session = session)
 
             ## Make sure the new user account is okay
             assert (new_user is None) == False
@@ -209,13 +213,14 @@ class Test_User_Update:
 
 class Test_User_Password_Change:
     user_name: str = random_string(10)
+    new_email: str = random_email()
     clear_pw_1: str = random_string(10)
     clear_pw_2: str = clear_pw_1 + random_string(10)
 
     def test_password_change(self):
         with Session(db.engine) as session:
             ## Create test user
-            new_user, err = UserUtil.create_new_user(user_name=self.user_name, clear_text_pw=self.clear_pw_1, session = session)
+            new_user, err = UserUtil.create_new_user(user_name = self.user_name, email = self.new_email, clear_text_pw = self.clear_pw_1, session = session)
             
             ## Verify new user okay
             assert (new_user is None) == False

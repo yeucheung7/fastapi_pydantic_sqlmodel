@@ -5,6 +5,7 @@ from models.users import User as UserModel
 class SingleUserResponse(BaseModel):
     id: int
     user_name: str
+    email: str
     is_admin: bool
     is_active: bool
 
@@ -14,6 +15,7 @@ class SingleUserResponse(BaseModel):
             return cls(
                 id = db_model.id,
                 user_name = db_model.user_name,
+                email = db_model.email,
                 is_admin = db_model.is_admin,
                 is_active = db_model.is_active
             )

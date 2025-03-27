@@ -1,10 +1,11 @@
 numpy
 pandas
 fastapi[standard]
-pydantic
+pydantic[email, timezone]
 sqlmodel
 bcrypt
 pyjwt
 pytest
 httpx
 pwinput
+nh3

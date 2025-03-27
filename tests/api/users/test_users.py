@@ -11,7 +11,10 @@ import time
 import random
 import string
 
-def random_string(length: int = 20):
+def random_email() -> str:
+    return random_string(6, no_pun = False) + "@" + random_string(5, no_pun = False) + ".com"
+
+def random_string(length: int = 20, no_pun: bool = False) -> str:
     return ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k = length))
 
 def two_list_total_match(list_1: list, list_2: list) -> bool:
@@ -25,14 +28,16 @@ client = TestClient(app)
 test_user = UserModel(
     id = 1,
     user_name = random_string(10),
+    email = random_email(),
     password_hash = random_string(10),
-    min_token_verison = 10,
+    min_token_verison = 0,
     is_admin = False,
 )
 
 test_admin = UserModel(
     id = 5,
     user_name = random_string(10),
+    email = random_email(),
     password_hash = random_string(10),
     min_token_verison = 10,
     is_admin = True,
@@ -152,13 +157,14 @@ class Test_User_Creation_and_Deletion:
 
             ## Creating new users
             user_name = random_string(15)
+            email = random_email()
             clear_password = random_string(15)
             response = client.request(method = self.method, url = self.url, headers = {"Authorization": f"Bearer {admin_ac_token}"}, json = {
                 "user_name": user_name,
+                "email": email,
                 "password": clear_password
             })
             response_json: dict = response.json()
-            print(response_json)
 
             ## Checking the return: Should be all in good form
             assert response.status_code == 200

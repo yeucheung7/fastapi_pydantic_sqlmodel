@@ -21,7 +21,7 @@ def select_user_by_id(uid: int, session: SessionDep, require_active: bool = None
     
     return results
 
-def create_new_user(user_name: str, clear_text_pw: str, session: SessionDep, super_user:bool = False, activiate:bool = True) -> tuple[UserModel, Exception]:
+def create_new_user(user_name: str, email : str, clear_text_pw: str, session: SessionDep, super_user:bool = False, activiate:bool = True) -> tuple[UserModel, Exception]:
     '''
     Given a user name and clear text password, add the new user onto the database.
     Return UserModel and Exception. If success, exception will be None, while the UserModel will be fully filled and active. Else, the exception will be returned, while the user model will be none.
@@ -32,6 +32,7 @@ def create_new_user(user_name: str, clear_text_pw: str, session: SessionDep, sup
     hashed = HashUtil.hashing(clear_text_pw)
     new_user: UserModel = UserModel(
         user_name = user_name,
+        email = email,
         password_hash = hashed,
         is_admin = super_user,
         is_active = activiate
@@ -54,11 +55,13 @@ def check_password_correct(user: UserModel, clear_password:str, session: Session
     hashed_password: str = user.password_hash
     return HashUtil.verify(clear_password, hashed_password)
 
-def update_user_info(user: UserModel, session: SessionDep, user_name: str = None, is_admin: bool = None, is_active: bool = None) -> tuple[UserModel, Exception]:
+def update_user_info(user: UserModel, session: SessionDep, user_name: str = None, email: str = None, is_admin: bool = None, is_active: bool = None) -> tuple[UserModel, Exception]:
     user_name: str = user.user_name if user_name is None else user_name
+    email: str = user.email if email is None else email
     is_admin: str = user.is_admin if is_admin is None else is_admin
     is_active: str = user.is_active if is_active is None else is_active
     user.user_name = user_name
+    user.email = email
     user.is_admin = is_admin
     user.is_active = is_active
 

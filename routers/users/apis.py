@@ -29,13 +29,12 @@ async def read_users(uid: int, session: SessionDep) -> SingleUserResponse:
         raise HTTPException(500, detail = "User duplication found")
 
 ## Admin only APIs ##
-
 @user_router.post("/", dependencies=[Depends(user_must_be_admin)])
 async def create_user(new_user_req: CreateUserRequest, session: SessionDep) -> SingleUserResponse:
     input_user = new_user_req
 
     ## Adding the user
-    new_user, err = UserUtil.create_new_user(input_user.user_name, clear_text_pw = input_user.password, session = session)
+    new_user, err = UserUtil.create_new_user(input_user.user_name, email = input_user.email, clear_text_pw = input_user.password, session = session)
 
     ## Handling the result
     if err is None:
